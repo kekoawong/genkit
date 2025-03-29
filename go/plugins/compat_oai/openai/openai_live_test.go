@@ -141,7 +141,7 @@ func TestPlugin(t *testing.T) {
 		)
 
 		resp, err := genkit.Generate(ctx, g,
-			ai.WithTextPrompt("what is a gablorken of 2 over 3.5?"),
+			ai.WithPromptText("what is a gablorken of 2 over 3.5?"),
 			ai.WithTools(gablorkenTool))
 		if err != nil {
 			t.Fatal(err)
