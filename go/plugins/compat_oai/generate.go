@@ -96,19 +96,24 @@ func (g *ModelGenerator) WithConfig(config any) *ModelGenerator {
 }
 
 // WithTools adds tools to the request
-func (g *ModelGenerator) WithTools(toolDefs []*ai.ToolDefinition, choice ai.ToolChoice) *ModelGenerator {
-	// TODO: Implement tools from model request
-	// see vertex ai recent pr here for reference: https://github.com/firebase/genkit/pull/2259
+func (g *ModelGenerator) WithTools(tools []*ai.ToolDefinition, choice ai.ToolChoice) *ModelGenerator {
+	if len(tools) == 0 {
+		return g
+	}
 
-	toolParams := make([]openai.ChatCompletionToolParam, 0, len(toolDefs))
-	for _, toolDef := range toolDefs {
+	toolParams := make([]openai.ChatCompletionToolParam, 0, len(tools))
+	for _, tool := range tools {
+		if tool == nil || tool.Name == "" {
+			continue
+		}
+
 		toolParams = append(toolParams, openai.ChatCompletionToolParam{
 			Type: openai.F(openai.ChatCompletionToolTypeFunction),
 			Function: openai.F(shared.FunctionDefinitionParam{
-				Name:        openai.F(toolDef.Name),
-				Description: openai.F(toolDef.Description),
-				Parameters:  openai.F(openai.FunctionParameters(toolDef.InputSchema)),
-				Strict:      openai.F(false), // TODO: later
+				Name:        openai.F(tool.Name),
+				Description: openai.F(tool.Description),
+				Parameters:  openai.F(openai.FunctionParameters(tool.InputSchema)),
+				Strict:      openai.F(false), // TODO: implement strict mode
 			}),
 		})
 	}
