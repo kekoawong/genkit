@@ -16,6 +16,7 @@ package openai_test
 
 import (
 	"context"
+	"math"
 	"os"
 	"strings"
 	"testing"
@@ -128,8 +129,29 @@ func TestPlugin(t *testing.T) {
 	})
 
 	t.Run("tool usage", func(t *testing.T) {
-		// TODO: Implement tool usage
-		t.Log("skipping tool usage")
+		// Define a tool for calculating gablorkens
+		gablorkenTool := genkit.DefineTool(g, "gablorken", "use when need to calculate a gablorken",
+			func(ctx *ai.ToolContext, input struct {
+				Value float64
+				Over  float64
+			},
+			) (float64, error) {
+				return math.Pow(input.Value, input.Over), nil
+			},
+		)
+
+		resp, err := genkit.Generate(ctx, g,
+			ai.WithPromptText("what is a gablorken of 2 over 3.5?"),
+			ai.WithTools(gablorkenTool))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		out := resp.Message.Content[0].Text
+		const want = "12.25"
+		if !strings.Contains(out, want) {
+			t.Errorf("got %q, expecting it to contain %q", out, want)
+		}
 	})
 
 	t.Run("system message", func(t *testing.T) {
